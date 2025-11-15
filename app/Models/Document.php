@@ -53,7 +53,22 @@ class Document extends Model
      */
     public function getFileUrlAttribute(): string
     {
-        return url('storage/' . $this->file_path);
+        if (!$this->file_path) {
+            return '';
+        }
+        
+        // If it's already a full URL, return it
+        if (filter_var($this->file_path, FILTER_VALIDATE_URL)) {
+            return $this->file_path;
+        }
+        
+        // Check if path starts with 'storage/' (legacy storage path)
+        if (str_starts_with($this->file_path, 'storage/')) {
+            return config('app.url') . '/' . $this->file_path;
+        }
+        
+        // Otherwise assume it's in the images directory
+        return config('app.url') . '/' . $this->file_path;
     }
 
     /**

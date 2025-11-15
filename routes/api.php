@@ -25,6 +25,7 @@ use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\PermissionController;
+use App\Http\Controllers\Api\V1\ShopOrderController;
 
 // API Version 1
 Route::prefix('v1')->group(function () {
@@ -81,6 +82,11 @@ Route::prefix('v1')->group(function () {
         
         // Payments
         Route::apiResource('payments', PaymentController::class);
+        
+        // Shop Orders (for customers to place orders)
+        Route::get('/shop/orders', [ShopOrderController::class, 'index']);
+        Route::post('/shop/orders', [ShopOrderController::class, 'store']);
+        Route::get('/shop/orders/{invoice}', [ShopOrderController::class, 'show']);
         
         // File Uploads
         Route::post('/pets/{pet}/photo', [FileUploadController::class, 'uploadPetPhoto']);

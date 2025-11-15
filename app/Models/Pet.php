@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Storage;
 
 class Pet extends Model
 {
@@ -85,7 +86,14 @@ class Pet extends Model
         if (!$this->photo) {
             return null;
         }
-        return url($this->photo);
+        
+        // If it's already a full URL, return it
+        if (filter_var($this->photo, FILTER_VALIDATE_URL)) {
+            return $this->photo;
+        }
+        
+        // Generate full URL with APP_URL and the path as stored (images/pets/...)
+        return config('app.url') . '/' . $this->photo;
     }
 
     public function getAgeAttribute(): ?int

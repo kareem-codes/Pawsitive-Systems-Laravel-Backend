@@ -72,6 +72,29 @@ class User extends Authenticatable
         ];
     }
 
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['profile_photo_url'];
+
+    // Accessors
+    public function getProfilePhotoUrlAttribute(): ?string
+    {
+        if (!$this->profile_photo) {
+            return null;
+        }
+        
+        // If it's already a full URL, return it
+        if (filter_var($this->profile_photo, FILTER_VALIDATE_URL)) {
+            return $this->profile_photo;
+        }
+        
+        // Generate full URL with APP_URL and the path as stored (images/users/...)
+        return config('app.url') . '/' . $this->profile_photo;
+    }
+
     // Relationships
     
     // For Owners (customers)

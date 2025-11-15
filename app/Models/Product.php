@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -76,7 +77,14 @@ class Product extends Model
         if (!$this->image) {
             return null;
         }
-        return url($this->image);
+        
+        // If it's already a full URL, return it
+        if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+            return $this->image;
+        }
+        
+        // Generate full URL with APP_URL and the path as stored (images/products/...)
+        return config('app.url') . '/' . $this->image;
     }
 
     public function getProfitMarginAttribute(): ?float
