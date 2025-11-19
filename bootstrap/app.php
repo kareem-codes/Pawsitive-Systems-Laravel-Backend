@@ -14,14 +14,24 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Apply CORS to all routes (web and api)
-        $middleware->use([
+        // CORS must be the very first middleware - handle before anything else
+        $middleware->prepend([
             Cors::class,
         ]);
         
-        $middleware->api(prepend: [
-            SetLocale::class,
-        ]);
+        // Disable session and cookie middleware for API routes (using token auth only)
+        $middleware->statefulApi();
+        
+        $middleware->api(
+            prepend: [
+                SetLocale::class,
+            ],
+            remove: [
+                \Illuminate\Cookie\Middleware\EncryptCookies::class,
+                \Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse::class,
+                \Illuminate\Session\Middleware\StartSession::class,
+            ]
+        );
         
         // Exclude API routes from CSRF verification
         $middleware->validateCsrfTokens(except: [
@@ -36,5 +46,25 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Ensure CORS headers are added even on errors
+        $exceptions->respond(function ($response, $exception, $request) {
+            // Add CORS headers to error responses
+            $origin = $request->headers->get('Origin', '*');
+            $allowedOrigins = [
+                'https://pawsitive-dashboard.kareem-codes.com',
+                'https://pawsitive-owner.kareem-codes.com',
+                'http://localhost:3000',
+                'http://localhost:3001',
+                'http://127.0.0.1:3000',
+                'http://127.0.0.1:3001',
+            ];
+            $allowOrigin = in_array($origin, $allowedOrigins) ? $origin : $allowedOrigins[0];
+            
+            $response->headers->set('Access-Control-Allow-Origin', $allowOrigin);
+            $response->headers->set('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD');
+            $response->headers->set('Access-Control-Allow-Headers', 'Content-Type, Accept, Authorization, X-Requested-With, X-CSRF-TOKEN, X-XSRF-TOKEN, Accept-Language, X-Locale, Origin, Cookie');
+            $response->headers->set('Access-Control-Allow-Credentials', 'true');
+            
+            return $response;
+        });
     })->create();

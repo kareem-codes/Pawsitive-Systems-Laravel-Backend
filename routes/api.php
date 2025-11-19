@@ -26,6 +26,50 @@ use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\RoleController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\ShopOrderController;
+use Illuminate\Support\Facades\Artisan;
+
+// CORS test endpoint - works without auth
+Route::get('/test-cors', function (Request $request) {
+    return response()->json([
+        'success' => true,
+        'message' => 'CORS is working!',
+        'origin' => $request->headers->get('Origin'),
+        'method' => $request->method(),
+        'timestamp' => now()->toDateTimeString(),
+    ]);
+});
+
+Route::get(
+    '/clear-cache',
+    function (Request $request) {
+        Artisan::call('cache:clear');
+        Artisan::call('config:clear');
+        Artisan::call('route:clear');
+        Artisan::call('view:clear');
+        return response()->json(['message' => 'Cache cleared successfully']);
+    }
+);
+        Route::get('/tst', function (Request $request) {
+    return response()->json([
+        'message' => 'API is working',
+        'origin' => $request->headers->get('Origin'),
+        'headers' => $request->headers->all()
+    ]);
+});
+
+Route::get('/cors-test', function (Request $request) {
+    return response()->json([
+        'message' => 'CORS test successful',
+        'origin' => $request->headers->get('Origin'),
+        'method' => $request->method(),
+        'env' => [
+            'session_domain' => config('session.domain'),
+            'sanctum_stateful' => config('sanctum.stateful'),
+            'session_same_site' => config('session.same_site'),
+            'session_secure' => config('session.secure'),
+        ]
+    ]);
+});
 
 // API Version 1
 Route::prefix('v1')->group(function () {
